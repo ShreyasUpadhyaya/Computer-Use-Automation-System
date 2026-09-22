@@ -1,0 +1,69 @@
+/* Deliberately dated styling: this app simulates a 2005-era core banking
+   servicing console. No CSS frameworks, no semantic layout, table-based
+   structure, default browser widgets. This is the point, not an oversight. */
+
+body {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  background: #d6d3ce;
+  margin: 0;
+  padding: 0;
+}
+
+table.chrome {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.chrome td.banner {
+  background: #003366;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 6px 10px;
+}
+
+table.chrome td.body {
+  padding: 12px;
+  vertical-align: top;
+}
+
+table.panel {
+  border: 1px solid #808080;
+  background: #ece9d8;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+table.datagrid {
+  border-collapse: collapse;
+  width: 100%;
+  background: #ffffff;
+}
+
+table.datagrid td,
+table.datagrid th {
+  border: 1px solid #a0a0a0;
+  padding: 3px 6px;
+  text-align: left;
+}
+
+table.datagrid th {
+  background: #c0c0c0;
+}
+
+.msg-error {
+  background: #ffdddd;
+  border: 1px solid #cc0000;
+  color: #660000;
+  padding: 6px;
+  margin-bottom: 8px;
+}
+
+.msg-info {
+  background: #ddeeff;
+  border: 1px solid #3366cc;
+  color: #003366;
+  padding: 6px;
+  margin-bottom: 8px;
+}
