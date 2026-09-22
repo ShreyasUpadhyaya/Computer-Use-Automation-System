@@ -10,6 +10,12 @@ import {
   stagePendingSubAccount,
   type SubAccount,
 } from './data/members.js';
+import {
+  APP_ERROR_DEPOSIT_TRIGGER,
+  SESSION_TIMEOUT_MEMBER_ID,
+  SLOW_LOAD_DELAY_MS,
+  SLOW_LOAD_MEMBER_ID,
+} from './faults.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -40,7 +46,16 @@ app.get('/search', (req, res) => {
   });
 });
 
-app.get('/members/:memberId', (req, res) => {
+app.get('/members/:memberId', async (req, res) => {
+  if (req.params.memberId === SESSION_TIMEOUT_MEMBER_ID) {
+    res.status(440).render('session_expired', { title: 'Session Expired' });
+    return;
+  }
+
+  if (req.params.memberId === SLOW_LOAD_MEMBER_ID) {
+    await new Promise((resolve) => setTimeout(resolve, SLOW_LOAD_DELAY_MS));
+  }
+
   const member = findMember(req.params.memberId);
 
   if (!member) {
@@ -82,6 +97,12 @@ app.post('/members/:memberId/new-sub-account', (req, res) => {
 
   const accountType = String(req.body.accountType ?? '') as SubAccount['type'];
   const depositRaw = String(req.body.openingDeposit ?? '').trim();
+
+  if (depositRaw === APP_ERROR_DEPOSIT_TRIGGER) {
+    res.status(500).render('app_error', { title: 'System Error', refCode: `ERR-${Date.now()}` });
+    return;
+  }
+
   const errors: string[] = [];
 
   if (!['Savings', 'Checking', 'Certificate'].includes(accountType)) {
