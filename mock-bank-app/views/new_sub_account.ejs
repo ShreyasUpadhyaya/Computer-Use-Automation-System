@@ -18,7 +18,7 @@
 <tr>
   <td>Account Type:</td>
   <td>
-    <select name="accountType">
+    <select name="accountType" title="Account Type">
       <option value="Savings" <%= (formValues.accountType === 'Savings') ? 'selected' : '' %>>Savings</option>
       <option value="Checking" <%= (formValues.accountType === 'Checking') ? 'selected' : '' %>>Checking</option>
       <option value="Certificate" <%= (formValues.accountType === 'Certificate') ? 'selected' : '' %>>Certificate</option>
@@ -27,7 +27,7 @@
 </tr>
 <tr>
   <td>Opening Deposit (USD):</td>
-  <td><input type="text" name="openingDeposit" value="<%= formValues.openingDeposit ?? '' %>"></td>
+  <td><input type="text" name="openingDeposit" title="Opening Deposit (USD)" value="<%= formValues.openingDeposit ?? '' %>"></td>
 </tr>
 <tr>
   <td>&nbsp;</td>
