@@ -1,0 +1,35 @@
+<%- include('_layout_top') %>
+
+<table class="panel">
+<tr><td>
+<form method="get" action="/search">
+<table>
+<tr>
+  <td>Member ID:</td>
+  <td><input type="text" name="memberId" value="<%= query ?? '' %>"></td>
+  <td><input type="submit" value="Find Member"></td>
+</tr>
+</table>
+</form>
+</td></tr>
+</table>
+
+<% if (typeof notFound !== 'undefined' && notFound) { %>
+<div class="msg-error">No member found matching ID &quot;<%= query %>&quot;.</div>
+<% } %>
+
+<% if (typeof results !== 'undefined' && results && results.length) { %>
+<table class="datagrid">
+<tr><th>Member ID</th><th>Name</th><th>Status</th><th>&nbsp;</th></tr>
+<% results.forEach(function(m) { %>
+<tr>
+  <td><%= m.memberId %></td>
+  <td><%= m.fullName %></td>
+  <td><%= m.status %></td>
+  <td><a href="/members/<%= m.memberId %>">Open</a></td>
+</tr>
+<% }); %>
+</table>
+<% } %>
+
+<%- include('_layout_bottom') %>
