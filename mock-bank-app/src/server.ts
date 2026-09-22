@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { members } from './data/members.js';
+import { findMember, formatCents, members } from './data/members.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,6 +30,17 @@ app.get('/search', (req, res) => {
     results,
     notFound: results.length === 0,
   });
+});
+
+app.get('/members/:memberId', (req, res) => {
+  const member = findMember(req.params.memberId);
+
+  if (!member) {
+    res.status(404).render('not_found', { title: 'Record Not Found', memberId: req.params.memberId });
+    return;
+  }
+
+  res.render('member_detail', { title: `Member ${member.memberId}`, member, formatCents });
 });
 
 const PORT = Number(process.env.PORT ?? 4000);

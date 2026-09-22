@@ -1,0 +1,40 @@
+<%- include('_layout_top') %>
+
+<table class="panel">
+<tr><td>
+<b>Member:</b> <%= member.fullName %> &nbsp;
+<b>ID:</b> <%= member.memberId %> &nbsp;
+<b>Status:</b> <%= member.status %>
+</td></tr>
+</table>
+
+<% if (member.status === 'RESTRICTED') { %>
+<div class="msg-error">
+This member's record is RESTRICTED. Account actions are blocked pending compliance review.
+</div>
+<% } %>
+
+<table class="datagrid">
+<tr><th>Sub-Account ID</th><th>Type</th><th>Balance</th></tr>
+<% member.subAccounts.forEach(function(sa) { %>
+<tr>
+  <td><%= sa.id %></td>
+  <td><%= sa.type %></td>
+  <td id="balance-<%= sa.id %>"><%= formatCents(sa.balanceCents) %></td>
+</tr>
+<% }); %>
+</table>
+
+<table class="panel" style="margin-top:10px">
+<tr><td>
+<% if (member.status === 'ACTIVE') { %>
+<a href="/members/<%= member.memberId %>/new-sub-account">Open New Sub-Account</a>
+<% } else { %>
+<span style="color:#888">Open New Sub-Account (unavailable &mdash; member not active)</span>
+<% } %>
+&nbsp;|&nbsp;
+<a href="/search">Back to Search</a>
+</td></tr>
+</table>
+
+<%- include('_layout_bottom') %>
