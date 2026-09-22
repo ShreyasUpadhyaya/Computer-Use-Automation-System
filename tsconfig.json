@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/guardrails" },
+    { "path": "./packages/agent" },
+    { "path": "./packages/replay" },
+    { "path": "./packages/escalation" },
+    { "path": "./cli" },
+    { "path": "./mock-bank-app" }
+  ]
+}

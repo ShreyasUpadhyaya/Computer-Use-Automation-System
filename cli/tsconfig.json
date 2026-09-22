@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "references": [
+    { "path": "../packages/core" },
+    { "path": "../packages/guardrails" },
+    { "path": "../packages/agent" },
+    { "path": "../packages/replay" },
+    { "path": "../packages/escalation" }
+  ],
+  "include": ["src"]
+}

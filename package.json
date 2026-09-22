@@ -1,0 +1,36 @@
+{
+  "name": "computer-use-automation-system",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A computer-use automation system: LLM-driven UI discovery, deterministic replay, and human escalation for legacy back-office applications.",
+  "workspaces": [
+    "mock-bank-app",
+    "packages/*",
+    "cli"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "mock-app": "npm run start --workspace mock-bank-app",
+    "run-agent": "npm run run-agent --workspace cli --",
+    "replay": "npm run replay --workspace cli --",
+    "resume-handoff": "npm run resume-handoff --workspace cli --"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.16.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

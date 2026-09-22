@@ -1,0 +1,20 @@
+{
+  "name": "@cua/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "run-agent": "tsx src/run-agent.ts",
+    "replay": "tsx src/replay.ts",
+    "resume-handoff": "tsx src/resume-handoff.ts"
+  },
+  "dependencies": {
+    "@cua/agent": "*",
+    "@cua/core": "*",
+    "@cua/escalation": "*",
+    "@cua/guardrails": "*",
+    "@cua/replay": "*"
+  }
+}
