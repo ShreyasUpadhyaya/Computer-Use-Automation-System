@@ -1,0 +1,41 @@
+<%- include('_layout_top') %>
+
+<table class="panel">
+<tr><td>
+<b>Member:</b> <%= member.fullName %> (<%= member.memberId %>)
+</td></tr>
+</table>
+
+<% if (typeof errors !== 'undefined' && errors && errors.length) { %>
+<div class="msg-error">
+<% errors.forEach(function(e) { %>&bull; <%= e %><br>
+<% }); %>
+</div>
+<% } %>
+
+<form method="post" action="/members/<%= member.memberId %>/new-sub-account">
+<table class="panel">
+<tr>
+  <td>Account Type:</td>
+  <td>
+    <select name="accountType">
+      <option value="Savings" <%= (formValues.accountType === 'Savings') ? 'selected' : '' %>>Savings</option>
+      <option value="Checking" <%= (formValues.accountType === 'Checking') ? 'selected' : '' %>>Checking</option>
+      <option value="Certificate" <%= (formValues.accountType === 'Certificate') ? 'selected' : '' %>>Certificate</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Opening Deposit (USD):</td>
+  <td><input type="text" name="openingDeposit" value="<%= formValues.openingDeposit ?? '' %>"></td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td><input type="submit" value="Continue"></td>
+</tr>
+</table>
+</form>
+
+<a href="/members/<%= member.memberId %>">Cancel / Back to Member</a>
+
+<%- include('_layout_bottom') %>

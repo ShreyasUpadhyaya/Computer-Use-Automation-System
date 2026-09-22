@@ -1,0 +1,10 @@
+<%- include('_layout_top') %>
+
+<div class="msg-info">
+New <%= subAccount.type %> sub-account <%= subAccount.id %> opened for <%= member.fullName %>
+(<%= member.memberId %>) with opening balance <%= formatCents(subAccount.balanceCents) %>.
+</div>
+
+<a href="/members/<%= member.memberId %>">Back to Member</a>
+
+<%- include('_layout_bottom') %>

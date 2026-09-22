@@ -1,7 +1,15 @@
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findMember, formatCents, members } from './data/members.js';
+import {
+  confirmSubAccount,
+  findMember,
+  formatCents,
+  getPendingSubAccount,
+  members,
+  stagePendingSubAccount,
+  type SubAccount,
+} from './data/members.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -41,6 +49,92 @@ app.get('/members/:memberId', (req, res) => {
   }
 
   res.render('member_detail', { title: `Member ${member.memberId}`, member, formatCents });
+});
+
+app.get('/members/:memberId/new-sub-account', (req, res) => {
+  const member = findMember(req.params.memberId);
+  if (!member) {
+    res.status(404).render('not_found', { title: 'Record Not Found', memberId: req.params.memberId });
+    return;
+  }
+  if (member.status !== 'ACTIVE') {
+    res.status(403).render('member_detail', { title: `Member ${member.memberId}`, member, formatCents });
+    return;
+  }
+
+  res.render('new_sub_account', {
+    title: 'Open New Sub-Account',
+    member,
+    formValues: { accountType: 'Savings', openingDeposit: '' },
+  });
+});
+
+app.post('/members/:memberId/new-sub-account', (req, res) => {
+  const member = findMember(req.params.memberId);
+  if (!member) {
+    res.status(404).render('not_found', { title: 'Record Not Found', memberId: req.params.memberId });
+    return;
+  }
+  if (member.status !== 'ACTIVE') {
+    res.status(403).render('member_detail', { title: `Member ${member.memberId}`, member, formatCents });
+    return;
+  }
+
+  const accountType = String(req.body.accountType ?? '') as SubAccount['type'];
+  const depositRaw = String(req.body.openingDeposit ?? '').trim();
+  const errors: string[] = [];
+
+  if (!['Savings', 'Checking', 'Certificate'].includes(accountType)) {
+    errors.push('Account type is invalid.');
+  }
+  const depositDollars = Number(depositRaw);
+  if (!depositRaw || Number.isNaN(depositDollars) || depositDollars <= 0) {
+    errors.push('Opening deposit must be a positive number.');
+  }
+
+  if (errors.length > 0) {
+    res.status(422).render('new_sub_account', {
+      title: 'Open New Sub-Account',
+      member,
+      errors,
+      formValues: { accountType, openingDeposit: depositRaw },
+    });
+    return;
+  }
+
+  const pending = stagePendingSubAccount(member.memberId, accountType, Math.round(depositDollars * 100));
+  res.render('confirm_sub_account', {
+    title: 'Confirm New Sub-Account',
+    member,
+    pending,
+    formatCents,
+  });
+});
+
+app.post('/members/:memberId/new-sub-account/confirm', (req, res) => {
+  const member = findMember(req.params.memberId);
+  if (!member) {
+    res.status(404).render('not_found', { title: 'Record Not Found', memberId: req.params.memberId });
+    return;
+  }
+
+  const token = String(req.body.confirmationToken ?? '');
+  const pending = getPendingSubAccount(token);
+  if (!pending || pending.memberId !== member.memberId) {
+    res.status(409).render('not_found', {
+      title: 'Confirmation Expired',
+      memberId: `${member.memberId} (confirmation token expired or invalid)`,
+    });
+    return;
+  }
+
+  const subAccount = confirmSubAccount(token)!;
+  res.render('sub_account_success', {
+    title: 'Sub-Account Opened',
+    member,
+    subAccount,
+    formatCents,
+  });
 });
 
 const PORT = Number(process.env.PORT ?? 4000);

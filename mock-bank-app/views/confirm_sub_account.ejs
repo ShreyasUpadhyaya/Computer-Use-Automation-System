@@ -1,0 +1,19 @@
+<%- include('_layout_top') %>
+
+<table class="panel">
+<tr><td>
+<b>Please review before confirming:</b><br><br>
+Member: <%= member.fullName %> (<%= member.memberId %>)<br>
+Account Type: <%= pending.accountType %><br>
+Opening Deposit: <%= formatCents(pending.openingDepositCents) %><br>
+</td></tr>
+</table>
+
+<form method="post" action="/members/<%= member.memberId %>/new-sub-account/confirm">
+<input type="hidden" name="confirmationToken" value="<%= pending.confirmationToken %>">
+<input type="submit" value="Confirm and Open Account">
+</form>
+
+<a href="/members/<%= member.memberId %>/new-sub-account">Back to Edit</a>
+
+<%- include('_layout_bottom') %>
