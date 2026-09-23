@@ -1,9 +1,9 @@
 import type { Page } from 'playwright';
 import type { Step, StepAction, Locator } from '@cua/core';
+import { resolveLocator, LocatorResolutionError } from '@cua/core';
 import { checkOrigin, checkActionType, type AllowlistConfig } from '@cua/guardrails';
 import { GeminiAgentClient } from './gemini-client.js';
 import { perceive } from './perception.js';
-import { resolveLocator, LocatorResolutionError } from './driver.js';
 import type { FunctionCall } from '@google/genai';
 
 export interface DiscoveryLoopOptions {

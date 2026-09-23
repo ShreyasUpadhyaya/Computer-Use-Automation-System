@@ -5,3 +5,4 @@ export * from './param-schema.js';
 export * from './artifact.js';
 export * from './result.js';
 export * from './artifact-store.js';
+export * from './driver.js';

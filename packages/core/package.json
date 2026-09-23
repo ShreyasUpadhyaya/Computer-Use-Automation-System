@@ -12,5 +12,8 @@
     "build": "tsc -b",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
   }
 }

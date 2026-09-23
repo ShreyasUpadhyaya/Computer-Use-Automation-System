@@ -1,5 +1,5 @@
 import type { Locator as PWLocator, Page } from 'playwright';
-import type { Locator, LocatorCandidate } from '@cua/core';
+import type { Locator, LocatorCandidate } from './locator.js';
 
 const DEFAULT_TIMEOUT_MS = 5000;
 
@@ -8,6 +8,11 @@ const DEFAULT_TIMEOUT_MS = 5000;
  * checking visibility/actionability yet — that happens when the caller
  * awaits an action on it (click/fill/etc.), which is where Playwright's
  * auto-waiting does the real work.
+ *
+ * Lives in core (not agent or replay) because both the discovery loop and
+ * the deterministic replay engine need identical locator-resolution
+ * semantics against a live Playwright page — this is shared surface-
+ * interaction infrastructure, not something specific to either side.
  */
 export function resolveCandidate(page: Page, candidate: LocatorCandidate): PWLocator {
   let locator: PWLocator;
