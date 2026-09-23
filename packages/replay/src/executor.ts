@@ -40,9 +40,17 @@ function resolveValue(value: StepValue, params: Record<string, unknown>): string
  * replay enforces the allowlist itself rather than assuming a step was
  * already safe because an agent recorded it.
  */
+export interface StepFailure {
+  step: Step;
+  index: number;
+  error: Error;
+  /** Whether failurePolicy's retries were already exhausted before this was surfaced. */
+  recoveryAttempted: boolean;
+}
+
 export async function executeSteps(
   options: ReplayOptions,
-): Promise<{ stepsExecuted: number } | { failedAt: { step: Step; index: number; error: Error } }> {
+): Promise<{ stepsExecuted: number } | { failedAt: StepFailure }> {
   const { artifact, params, page, allowlist } = options;
 
   const validation = validateParams(artifact.inputSchema, params);
@@ -56,14 +64,48 @@ export async function executeSteps(
     const step = artifact.steps[index]!;
     options.onStepStarted?.(step, index);
 
-    try {
-      await executeStep(page, step, params, allowlist);
-    } catch (error) {
-      return { failedAt: { step, index, error: error instanceof Error ? error : new Error(String(error)) } };
+    const outcome = await executeStepWithRecovery(page, step, params, allowlist);
+    if (outcome) {
+      return { failedAt: { step, index, error: outcome.error, recoveryAttempted: outcome.recoveryAttempted } };
     }
   }
 
   return { stepsExecuted: artifact.steps.length };
+}
+
+/**
+ * Applies the step's own failurePolicy before giving up: a `retry` policy
+ * (the recoverable case — e.g. a transient slow load) gets a bounded number
+ * of attempts with a fixed backoff; `escalate`/`fail` surface immediately.
+ * This is intentionally a policy the *step* carries, decided at discovery
+ * time, rather than a blanket retry-everything default — a step recorded
+ * against a confirm/submit action should not be silently retried, since
+ * retrying a partially-applied side effect is exactly the kind of thing
+ * that must not happen unattended.
+ */
+async function executeStepWithRecovery(
+  page: Page,
+  step: Step,
+  params: Record<string, unknown>,
+  allowlist: AllowlistConfig,
+): Promise<{ error: Error; recoveryAttempted: boolean } | undefined> {
+  const policy = step.failurePolicy;
+  const maxAttempts = policy.onFailure === 'retry' ? policy.maxAttempts : 1;
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await executeStep(page, step, params, allowlist);
+      return undefined;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (policy.onFailure === 'retry' && attempt < maxAttempts) {
+        await page.waitForTimeout(policy.backoffMs);
+      }
+    }
+  }
+
+  return { error: lastError!, recoveryAttempted: policy.onFailure === 'retry' && maxAttempts > 1 };
 }
 
 async function executeStep(

@@ -4,6 +4,7 @@ import type { AllowlistConfig } from '@cua/guardrails';
 import { executeSteps, LocatorResolutionError } from './executor.js';
 import { verifyCheckpoint } from './verify.js';
 import { extractOutputs } from './extract-outputs.js';
+import { detectBusinessOutcome } from './outcomes.js';
 
 export interface ReplayRunOptions {
   artifact: CapabilityArtifact;
@@ -18,16 +19,20 @@ export interface ReplayRunOptions {
  * declared outputs, and report success / businessOutcome / failure per the
  * shared ReplayResult contract.
  *
- * Order matters: checkpoint verification happens BEFORE output extraction.
- * A checkpoint failure means we never reliably reached the state the
- * artifact promises, so trusting whatever text happens to be on screen at
- * that point would risk returning outputs that look plausible but weren't
- * actually confirmed — exactly the "assumed the click worked" mistake a
- * checkpoint exists to catch.
+ * Error-taxonomy rule this function encodes: whenever automation cannot
+ * proceed as expected — a step's locator never resolves, or the checkpoint
+ * doesn't match — we ask "is this a KNOWN outcome the target app itself
+ * produces?" before concluding it's an unanticipated hard failure.
+ * detectBusinessOutcome() inspects the live page for the same signatures
+ * (an on-page message, a status interstitial) a human operator would
+ * recognize on sight. Only when nothing matches do we fall through to a
+ * generic `failure` — the assignment's central taxonomy point: "no such
+ * member" must never be conflated with a crash.
  *
- * Business-outcome classification (turning a specific failure into a named
- * BusinessOutcomeCode like NOT_FOUND) lands in the next commit; for now a
- * checkpoint miss or step failure is reported as a generic `failure`.
+ * Checkpoint verification happens BEFORE output extraction: a checkpoint
+ * miss means we never reliably reached the promised end state, so trusting
+ * whatever text happens to be on screen at that point would risk returning
+ * outputs that look plausible but were never actually confirmed.
  */
 export async function replay(options: ReplayRunOptions): Promise<ReplayResult> {
   const execution = await executeSteps({
@@ -38,20 +43,36 @@ export async function replay(options: ReplayRunOptions): Promise<ReplayResult> {
   });
 
   if ('failedAt' in execution) {
-    const { step, index, error } = execution.failedAt;
+    const { step, index, error, recoveryAttempted } = execution.failedAt;
+
+    const outcome = await detectBusinessOutcome(options.page);
+    if (outcome) {
+      return { status: 'businessOutcome', code: outcome.code, detail: outcome.detail, stepsExecuted: index };
+    }
+
     return {
       status: 'failure',
       stepId: step.id,
       stepIndex: index,
       expected: describeExpectation(error),
       observed: error.message,
-      recoveryAttempted: false,
+      recoveryAttempted,
       stepsExecuted: index,
     };
   }
 
   const checkpointResult = await verifyCheckpoint(options.page, options.artifact.checkpoint);
   if (!checkpointResult.satisfied) {
+    const outcome = await detectBusinessOutcome(options.page);
+    if (outcome) {
+      return {
+        status: 'businessOutcome',
+        code: outcome.code,
+        detail: outcome.detail,
+        stepsExecuted: execution.stepsExecuted,
+      };
+    }
+
     return {
       status: 'failure',
       stepId: '(checkpoint)',
