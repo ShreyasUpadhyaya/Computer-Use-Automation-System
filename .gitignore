@@ -19,6 +19,7 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+.claude/
 
 # Local run artifacts that are NOT curated evidence
 /tmp/
